@@ -1,0 +1,1865 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meal Planning Prototype</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17201b;
+      --muted: #5f6c64;
+      --line: #d9dfda;
+      --panel: #ffffff;
+      --soft: #f5f7f2;
+      --mint: #dceee2;
+      --sage: #6b8f71;
+      --tomato: #c85c4a;
+      --gold: #d59c36;
+      --blue: #4a7f9f;
+      --plum: #77668e;
+      --shadow: 0 18px 42px rgba(23, 32, 27, 0.12);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: linear-gradient(180deg, #fbfcf7 0%, #eef4f2 52%, #f7f3eb 100%);
+      min-height: 100vh;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: var(--radius);
+      min-height: 40px;
+      padding: 9px 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    button:hover { border-color: #a9b7af; }
+    button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+    button.warn { border-color: #e6b1a6; color: #8e3328; }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: var(--radius);
+      min-height: 40px;
+      padding: 9px 10px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    .app {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin: 8px 0 0;
+      max-width: 780px;
+      line-height: 1.45;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .sidebar, .results, .card, .modal-panel {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 18px;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+    }
+
+    .section {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section:last-child { border-bottom: 0; }
+
+    h2, h3 {
+      margin: 0 0 12px;
+      letter-spacing: 0;
+    }
+
+    h2 { font-size: 18px; }
+    h3 { font-size: 15px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .meal-counts {
+      display: grid;
+      gap: 8px;
+    }
+
+    .day-row {
+      display: grid;
+      grid-template-columns: 46px repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .day-row strong { font-size: 13px; }
+    .day-row input { min-height: 34px; padding: 6px 8px; }
+
+    .day-head {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .chip input {
+      width: auto;
+      min-height: auto;
+      margin: 0;
+      accent-color: var(--sage);
+    }
+
+    .staple-picker {
+      display: grid;
+      gap: 12px;
+    }
+
+    .staple-group {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 10px;
+    }
+
+    .staple-group-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+
+    .staple-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .staple-option {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .staple-option input {
+      width: auto;
+      min-height: auto;
+      accent-color: var(--sage);
+    }
+
+    .custom-staple-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .selected-staples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 30px;
+    }
+
+    .mini-chip {
+      border: 1px solid #b9cbbd;
+      background: var(--mint);
+      border-radius: 999px;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 850;
+      padding: 5px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mini-chip button {
+      min-height: 20px;
+      width: 20px;
+      padding: 0;
+      border-radius: 999px;
+      border-color: #9bb7a2;
+      line-height: 1;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .tabs button {
+      min-height: 36px;
+      padding: 7px 11px;
+    }
+
+    .tabs button.active {
+      background: var(--mint);
+      border-color: #a5c6ad;
+    }
+
+    .results {
+      min-height: 680px;
+      overflow: hidden;
+    }
+
+    .result-body { padding: 16px; }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      min-height: 84px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(180px, 1fr));
+      gap: 10px;
+      overflow: auto;
+      padding-bottom: 6px;
+    }
+
+    .day-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: var(--radius);
+      min-width: 180px;
+      overflow: hidden;
+    }
+
+    .day-title {
+      background: var(--ink);
+      color: #fff;
+      padding: 10px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .meal-slot {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      min-height: 92px;
+    }
+
+    .meal-slot:last-child { border-bottom: 0; }
+
+    .meal-label {
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 850;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .recipe-title {
+      font-weight: 850;
+      line-height: 1.2;
+    }
+
+    .recipe-meta {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .recipe-bank {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .recipe-card {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .tagline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      border-radius: 999px;
+      padding: 4px 7px;
+      background: var(--blue);
+    }
+
+    .tag.alt { background: var(--tomato); }
+    .tag.gold { background: var(--gold); color: #22180b; }
+    .tag.plum { background: var(--plum); }
+    .tag.sage { background: var(--sage); }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    th {
+      background: var(--soft);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .prep-timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .prep-item {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+
+    .prep-time {
+      font-weight: 900;
+      color: var(--tomato);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .notice {
+      border: 1px solid #e0c17c;
+      background: #fff7df;
+      color: #5b4515;
+      padding: 12px;
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .source-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .source-list a {
+      color: var(--ink);
+      font-weight: 850;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(23, 32, 27, 0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 20;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-panel {
+      width: min(900px, 100%);
+      max-height: 86vh;
+      overflow: auto;
+      padding: 16px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #111914;
+      color: #f2fff7;
+      padding: 12px;
+      border-radius: var(--radius);
+      overflow: auto;
+    }
+
+    .empty {
+      min-height: 460px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 24px;
+    }
+
+    .empty strong {
+      color: var(--ink);
+      display: block;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 1050px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; max-height: none; }
+      .topbar { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+      .summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      .app { padding: 12px; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .summary-strip { grid-template-columns: 1fr; }
+      .day-row {
+        grid-template-columns: 42px repeat(2, minmax(0, 1fr));
+      }
+      .day-row .snack-col, .day-row .dinner-col { margin-top: 4px; }
+      .staple-options { grid-template-columns: 1fr; }
+      .custom-staple-row { grid-template-columns: 1fr; }
+      .prep-item { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>Household Meal Planner</h1>
+        <p class="subtitle">Interactive prototype for household intake, macro-aware recipe selection, staple-aware grocery planning, and timed meal prep. Nutrition outputs are planning estimates, not medical advice.</p>
+      </div>
+      <div class="actions">
+        <button id="sampleBtn" title="Load a realistic test household">Sample data</button>
+        <button id="saveBtn" title="Save intake to this browser">Save</button>
+        <button id="exportBtn" title="View generated plan data">Export JSON</button>
+        <button id="printBtn" title="Print or save PDF">Print</button>
+        <button class="warn" id="resetBtn" title="Clear intake and plan">Reset</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" aria-label="Meal planning intake">
+        <section class="section">
+          <h2>1. Household</h2>
+          <div class="grid-2">
+            <label>Plan starts
+              <input id="startDate" type="date">
+            </label>
+            <label>Currency
+              <select id="currency">
+                <option value="$">USD $</option>
+                <option value="£">GBP £</option>
+                <option value="€">EUR €</option>
+                <option value="A$" selected>AUD A$</option>
+                <option value="₫">VND ₫</option>
+              </select>
+            </label>
+          </div>
+          <div style="height:10px"></div>
+          <div class="grid-2">
+            <label>Weekly budget
+              <input id="budget" type="number" min="0" step="5" placeholder="180">
+            </label>
+            <label>Leftovers
+              <select id="leftovers">
+                <option value="some">Use strategically</option>
+                <option value="many">Maximize leftovers</option>
+                <option value="few">Minimal leftovers</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>2. Meal Counts</h2>
+          <div class="meal-counts" id="mealCounts"></div>
+        </section>
+
+        <section class="section">
+          <h2>3. Goals</h2>
+          <div class="grid-2">
+            <label>Primary goal
+              <select id="goal">
+                <option value="family health">Family health</option>
+                <option value="fat loss">Fat loss</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="muscle gain">Muscle gain</option>
+                <option value="performance">Performance</option>
+                <option value="budget">Budget</option>
+                <option value="convenience">Convenience</option>
+              </select>
+            </label>
+            <label>Energy target
+              <select id="energyMode">
+                <option value="maintenance">Maintenance</option>
+                <option value="deficit">Deficit</option>
+                <option value="surplus">Surplus</option>
+              </select>
+            </label>
+          </div>
+          <div style="height:10px"></div>
+          <div class="grid-2">
+            <label>Adult calories/day
+              <input id="calories" type="number" min="900" max="6000" step="50" placeholder="2200">
+            </label>
+            <label>Protein target/day
+              <input id="protein" type="number" min="20" max="350" step="5" placeholder="140">
+            </label>
+          </div>
+          <div style="height:10px"></div>
+          <div class="grid-2">
+            <label>Carbs target/day
+              <input id="carbs" type="number" min="20" max="700" step="5" placeholder="240">
+            </label>
+            <label>Fat target/day
+              <input id="fat" type="number" min="20" max="250" step="5" placeholder="75">
+            </label>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>4. Dietaries</h2>
+          <div class="chips" id="dietChips"></div>
+          <div style="height:10px"></div>
+          <label>Other exclusions or allergies
+            <textarea id="allergies" placeholder="Peanuts, shellfish, no pork, etc."></textarea>
+          </label>
+        </section>
+
+        <section class="section">
+          <h2>5. Preferences</h2>
+          <label>Cuisines or foods you like
+            <textarea id="likes" placeholder="Mediterranean, Korean, tacos, soups, high protein breakfasts"></textarea>
+          </label>
+          <div style="height:10px"></div>
+          <label>Foods to avoid
+            <textarea id="dislikes" placeholder="Mushrooms, spicy food, lentils, etc."></textarea>
+          </label>
+          <div style="height:10px"></div>
+          <div class="grid-2">
+            <label>Weeknight max cook time
+              <select id="maxTime">
+                <option value="20">20 min</option>
+                <option value="30" selected>30 min</option>
+                <option value="45">45 min</option>
+                <option value="60">60 min</option>
+              </select>
+            </label>
+            <label>Lunch format
+              <select id="lunchFormat">
+                <option value="portable">Portable</option>
+                <option value="home">At home</option>
+                <option value="mixed">Mixed</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>6. Staples</h2>
+          <div id="staplePicker" class="staple-picker"></div>
+          <div style="height:10px"></div>
+          <div class="custom-staple-row">
+            <label>Anything missing
+              <input id="customStapleInput" type="text" placeholder="Add one or more, comma separated">
+            </label>
+            <button id="addStapleBtn" type="button">Add</button>
+          </div>
+          <div style="height:10px"></div>
+          <label>Selected staples
+            <textarea id="staples" readonly placeholder="Choose staples above or add custom items."></textarea>
+          </label>
+          <div style="height:8px"></div>
+          <div id="selectedStaples" class="selected-staples" aria-live="polite"></div>
+          <div style="height:10px"></div>
+          <label>Equipment
+            <textarea id="equipment" placeholder="Oven, air fryer, Instant Pot, rice cooker, blender..."></textarea>
+          </label>
+        </section>
+
+        <section class="section">
+          <h2>7. Prep Timing</h2>
+          <div class="grid-2">
+            <label>Main prep day
+              <select id="prepDay">
+                <option>Sunday</option>
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+                <option>Saturday</option>
+              </select>
+            </label>
+            <label>Main prep minutes
+              <input id="prepMinutes" type="number" min="0" max="300" step="15" value="120">
+            </label>
+          </div>
+          <div style="height:10px"></div>
+          <div class="grid-2">
+            <label>Midweek prep day
+              <select id="midPrepDay">
+                <option>Wednesday</option>
+                <option>Sunday</option>
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+                <option>Saturday</option>
+              </select>
+            </label>
+            <label>Midweek prep minutes
+              <input id="midPrepMinutes" type="number" min="0" max="180" step="15" value="45">
+            </label>
+          </div>
+          <div style="height:14px"></div>
+          <button id="generateBtn" class="primary" style="width:100%">Generate plan</button>
+        </section>
+      </aside>
+
+      <section class="results" aria-live="polite">
+        <div class="result-body">
+          <div class="tabs" role="tablist">
+            <button data-tab="plan" class="active">Plan</button>
+            <button data-tab="recipes">Recipes</button>
+            <button data-tab="grocery">Grocery</button>
+            <button data-tab="prep">Prep</button>
+            <button data-tab="logic">Logic</button>
+            <button data-tab="widgets">Widgets</button>
+          </div>
+          <div id="output"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="jsonModal" class="modal" role="dialog" aria-modal="true" aria-label="Exported meal plan JSON">
+    <div class="modal-panel">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px">
+        <h2 style="margin:0">Export JSON</h2>
+        <button id="closeModal">Close</button>
+      </div>
+      <pre id="jsonText"></pre>
+    </div>
+  </div>
+
+  <script>
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
+    const diets = ["Vegetarian", "Vegan", "Gluten-free", "Dairy-free", "Low-carb", "High-protein", "Mediterranean", "Pescatarian", "No pork", "Kid-friendly"];
+    const stateKey = "meal-planner-prototype-v3";
+    const stapleGroups = {
+      Protein: ["eggs", "chicken breast", "chicken thighs", "lean ground turkey", "lean ground beef", "salmon fillets", "firm tofu", "canned tuna", "protein powder"],
+      Dairy: ["Greek yogurt", "kefir", "milk", "feta", "parmesan", "cheddar"],
+      Grains: ["oats", "rice", "jasmine rice", "whole-wheat pasta", "corn tortillas", "pita", "whole-grain bread", "quinoa"],
+      Produce: ["spinach", "romaine", "kale", "broccoli", "cucumber", "tomatoes", "carrots", "sweet potatoes", "bell peppers", "cabbage", "berries", "mango", "avocado", "lime", "lemon"],
+      Pantry: ["black beans", "chickpeas", "red lentils", "coconut milk", "crushed tomatoes", "olive oil", "sesame oil", "chia seeds", "flaxseed", "pumpkin seeds", "pistachios"],
+      Condiments: ["salsa", "hummus", "soy sauce", "gochujang", "harissa paste", "rice vinegar", "sriracha mayo", "shawarma spice"]
+    };
+    let customStaples = [];
+
+    const recipeLibrary = [
+      {
+        id: "oat-yogurt-parfait",
+        title: "Berry Pistachio Overnight Oats",
+        mealTypes: ["breakfast", "snack"],
+        tags: ["vegetarian", "high-protein", "portable", "prep-ahead"],
+        time: 8,
+        baseServings: 1,
+        macros: { calories: 430, protein: 29, carbs: 54, fat: 12 },
+        cost: 3.2,
+        ingredients: [
+          ["oats", 0.5, "cup", "Grains"],
+          ["Greek yogurt", 0.75, "cup", "Dairy"],
+          ["berries", 0.75, "cup", "Produce"],
+          ["pistachios", 1, "tbsp", "Pantry"],
+          ["chia seeds", 1, "tbsp", "Pantry"]
+        ],
+        prep: ["Assemble jars up to 4 days ahead.", "Add nuts just before eating for texture."]
+      },
+      {
+        id: "egg-taco",
+        title: "Spinach Egg Breakfast Tacos",
+        mealTypes: ["breakfast"],
+        tags: ["vegetarian", "kid-friendly", "quick"],
+        time: 15,
+        baseServings: 1,
+        macros: { calories: 410, protein: 24, carbs: 36, fat: 19 },
+        cost: 3.5,
+        ingredients: [
+          ["eggs", 2, "each", "Dairy"],
+          ["corn tortillas", 2, "each", "Bakery"],
+          ["spinach", 1, "cup", "Produce"],
+          ["salsa", 2, "tbsp", "Pantry"],
+          ["avocado", 0.25, "each", "Produce"]
+        ],
+        prep: ["Wash spinach during prep block.", "Cook eggs fresh for best texture."]
+      },
+      {
+        id: "tofu-banh-mi-bowl",
+        title: "Crispy Tofu Banh Mi Rice Bowls",
+        mealTypes: ["lunch", "dinner"],
+        tags: ["vegan", "vegetarian", "dairy-free", "portable", "asian"],
+        time: 35,
+        baseServings: 4,
+        macros: { calories: 560, protein: 24, carbs: 73, fat: 19 },
+        cost: 4.4,
+        ingredients: [
+          ["firm tofu", 600, "g", "Protein"],
+          ["rice", 2, "cups", "Grains"],
+          ["carrots", 3, "each", "Produce"],
+          ["cucumber", 1, "each", "Produce"],
+          ["radishes", 1, "bunch", "Produce"],
+          ["cilantro", 1, "bunch", "Produce"],
+          ["rice vinegar", 0.33, "cup", "Pantry"],
+          ["sriracha mayo", 0.25, "cup", "Condiments"]
+        ],
+        prep: ["Press and cube tofu.", "Quick-pickle carrots and radishes.", "Cook rice for bowls and leftovers."]
+      },
+      {
+        id: "salmon-chickpea-tray",
+        title: "Harissa Salmon, Chickpeas, and Greens",
+        mealTypes: ["dinner"],
+        tags: ["pescatarian", "mediterranean", "high-protein", "gluten-free"],
+        time: 30,
+        baseServings: 4,
+        macros: { calories: 610, protein: 43, carbs: 42, fat: 31 },
+        cost: 7.8,
+        ingredients: [
+          ["salmon fillets", 4, "each", "Seafood"],
+          ["canned chickpeas", 2, "cans", "Canned"],
+          ["kale", 1, "bunch", "Produce"],
+          ["cherry tomatoes", 2, "cups", "Produce"],
+          ["harissa paste", 3, "tbsp", "Condiments"],
+          ["lemon", 1, "each", "Produce"]
+        ],
+        prep: ["Rinse chickpeas and chop greens ahead.", "Roast everything on one sheet pan."]
+      },
+      {
+        id: "turkey-lentil-ragu",
+        title: "Turkey Lentil Ragu with Whole-Wheat Pasta",
+        mealTypes: ["dinner", "lunch"],
+        tags: ["high-protein", "kid-friendly", "leftover-friendly"],
+        time: 40,
+        baseServings: 6,
+        macros: { calories: 590, protein: 42, carbs: 68, fat: 16 },
+        cost: 4.7,
+        ingredients: [
+          ["lean ground turkey", 900, "g", "Protein"],
+          ["red lentils", 1, "cup", "Pantry"],
+          ["whole-wheat pasta", 600, "g", "Grains"],
+          ["crushed tomatoes", 2, "cans", "Canned"],
+          ["onion", 1, "each", "Produce"],
+          ["carrots", 2, "each", "Produce"],
+          ["parmesan", 0.5, "cup", "Dairy"]
+        ],
+        prep: ["Cook sauce on main prep day.", "Hold pasta separately to avoid softness."]
+      },
+      {
+        id: "chicken-shawarma",
+        title: "Chicken Shawarma Pita Plates",
+        mealTypes: ["dinner", "lunch"],
+        tags: ["mediterranean", "high-protein", "kid-friendly"],
+        time: 35,
+        baseServings: 4,
+        macros: { calories: 640, protein: 46, carbs: 58, fat: 24 },
+        cost: 5.6,
+        ingredients: [
+          ["chicken thighs", 800, "g", "Protein"],
+          ["pita", 4, "each", "Bakery"],
+          ["Greek yogurt", 1, "cup", "Dairy"],
+          ["cucumber", 1, "each", "Produce"],
+          ["tomatoes", 3, "each", "Produce"],
+          ["romaine", 1, "head", "Produce"],
+          ["shawarma spice", 2, "tbsp", "Spices"]
+        ],
+        prep: ["Marinate chicken during main prep.", "Chop salad components and store dry."]
+      },
+      {
+        id: "black-bean-tacos",
+        title: "Smoky Black Bean and Sweet Potato Tacos",
+        mealTypes: ["dinner", "lunch"],
+        tags: ["vegan", "vegetarian", "dairy-free", "gluten-free", "budget"],
+        time: 30,
+        baseServings: 4,
+        macros: { calories: 520, protein: 18, carbs: 82, fat: 14 },
+        cost: 3.1,
+        ingredients: [
+          ["sweet potatoes", 3, "each", "Produce"],
+          ["black beans", 2, "cans", "Canned"],
+          ["corn tortillas", 12, "each", "Bakery"],
+          ["cabbage", 0.5, "head", "Produce"],
+          ["lime", 2, "each", "Produce"],
+          ["pumpkin seeds", 0.25, "cup", "Pantry"]
+        ],
+        prep: ["Roast sweet potatoes ahead.", "Make lime slaw fresh or same day."]
+      },
+      {
+        id: "thai-turkey-lettuce",
+        title: "Thai Turkey Lettuce Cups with Jasmine Rice",
+        mealTypes: ["dinner"],
+        tags: ["high-protein", "dairy-free", "quick"],
+        time: 25,
+        baseServings: 4,
+        macros: { calories: 530, protein: 39, carbs: 54, fat: 18 },
+        cost: 5.2,
+        ingredients: [
+          ["lean ground turkey", 700, "g", "Protein"],
+          ["jasmine rice", 1.5, "cups", "Grains"],
+          ["butter lettuce", 1, "head", "Produce"],
+          ["bell peppers", 2, "each", "Produce"],
+          ["basil", 1, "bunch", "Produce"],
+          ["soy sauce", 3, "tbsp", "Condiments"],
+          ["lime", 1, "each", "Produce"]
+        ],
+        prep: ["Cook rice ahead.", "Chop peppers and herbs shortly before serving."]
+      },
+      {
+        id: "lentil-coconut-soup",
+        title: "Coconut Red Lentil Soup with Lime",
+        mealTypes: ["lunch", "dinner"],
+        tags: ["vegan", "vegetarian", "dairy-free", "gluten-free", "leftover-friendly"],
+        time: 35,
+        baseServings: 6,
+        macros: { calories: 460, protein: 20, carbs: 58, fat: 17 },
+        cost: 2.8,
+        ingredients: [
+          ["red lentils", 2, "cups", "Pantry"],
+          ["coconut milk", 1, "can", "Canned"],
+          ["vegetable broth", 6, "cups", "Canned"],
+          ["spinach", 4, "cups", "Produce"],
+          ["onion", 1, "each", "Produce"],
+          ["ginger", 1, "tbsp", "Produce"],
+          ["lime", 2, "each", "Produce"]
+        ],
+        prep: ["Cook full batch on prep day.", "Freeze 2 servings if leftovers are set to minimal."]
+      },
+      {
+        id: "korean-beef-bowls",
+        title: "Korean Beef, Broccoli, and Kimchi Bowls",
+        mealTypes: ["dinner", "lunch"],
+        tags: ["high-protein", "quick", "portable"],
+        time: 25,
+        baseServings: 4,
+        macros: { calories: 650, protein: 41, carbs: 72, fat: 22 },
+        cost: 5.9,
+        ingredients: [
+          ["lean ground beef", 700, "g", "Protein"],
+          ["rice", 2, "cups", "Grains"],
+          ["broccoli", 2, "heads", "Produce"],
+          ["kimchi", 1, "cup", "Refrigerated"],
+          ["gochujang", 2, "tbsp", "Condiments"],
+          ["sesame oil", 1, "tbsp", "Pantry"]
+        ],
+        prep: ["Cook rice ahead.", "Steam broccoli same day for color."]
+      },
+      {
+        id: "greek-snack-box",
+        title: "Greek Snack Box",
+        mealTypes: ["snack", "lunch"],
+        tags: ["vegetarian", "mediterranean", "portable", "kid-friendly"],
+        time: 10,
+        baseServings: 1,
+        macros: { calories: 330, protein: 18, carbs: 35, fat: 14 },
+        cost: 3.8,
+        ingredients: [
+          ["hummus", 0.33, "cup", "Dips"],
+          ["whole-grain crackers", 1, "serving", "Snacks"],
+          ["cucumber", 0.5, "each", "Produce"],
+          ["grapes", 1, "cup", "Produce"],
+          ["feta", 0.25, "cup", "Dairy"]
+        ],
+        prep: ["Pack boxes for 2 days at a time.", "Keep crackers separate."]
+      },
+      {
+        id: "protein-smoothie",
+        title: "Mango Kefir Protein Smoothie",
+        mealTypes: ["breakfast", "snack"],
+        tags: ["vegetarian", "high-protein", "quick"],
+        time: 6,
+        baseServings: 1,
+        macros: { calories: 360, protein: 32, carbs: 45, fat: 6 },
+        cost: 4.1,
+        ingredients: [
+          ["kefir", 1, "cup", "Dairy"],
+          ["mango", 1, "cup", "Frozen"],
+          ["protein powder", 1, "scoop", "Pantry"],
+          ["spinach", 1, "cup", "Produce"],
+          ["flaxseed", 1, "tbsp", "Pantry"]
+        ],
+        prep: ["Pre-portion freezer smoothie packs.", "Blend with kefir when serving."]
+      }
+    ];
+
+    const sources = [
+      ["USDA MyPlate", "Balance food groups, plan around inventory, include snacks and leftovers.", "https://www.myplate.gov/es/tip-sheet/planificacion-de-comidas"],
+      ["Nutrition.gov", "Shopping, cooking, food labels, healthy groceries, and meal prep resources.", "https://www.nutrition.gov/topics/shopping-cooking-and-meal-planning"],
+      ["CDC Healthy Weight", "Gradual weight management, tracking, realistic goals, and lifestyle context.", "https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html"],
+      ["NIDDK", "Healthy eating plan patterns for weight loss or maintenance.", "https://www.niddk.nih.gov/health-information/weight-management/adult-overweight-obesity/eating-physical-activity"],
+      ["Edamam Meal Planner API", "API option for personalized meal plans, recipe search, nutrients, and shopping lists.", "https://developer.edamam.com/meal-planner-api"],
+      ["Spoonacular API", "Recipe, nutrition, ingredient, diet filtering, meal planning, and grocery-list API option.", "https://apis.guru/apis/spoonacular.com"]
+    ];
+
+    let currentTab = "plan";
+    let generated = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function init() {
+      renderMealCounts();
+      renderDietChips();
+      renderStaplePicker();
+      setDefaultDate();
+      bindEvents();
+      loadState();
+      syncStaplesSummary();
+      render();
+    }
+
+    function setDefaultDate() {
+      const input = $("startDate");
+      if (!input.value) {
+        const today = new Date();
+        const day = today.getDay();
+        const diff = day === 0 ? 1 : 1 - day;
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + diff);
+        input.value = monday.toISOString().slice(0, 10);
+      }
+    }
+
+    function renderMealCounts() {
+      const root = $("mealCounts");
+      root.innerHTML = "";
+      const head = document.createElement("div");
+      head.className = "day-row";
+      head.innerHTML = "<span></span><span class='day-head'>Breakfast</span><span class='day-head'>Lunch</span><span class='day-head dinner-col'>Dinner</span><span class='day-head snack-col'>Snack</span>";
+      root.appendChild(head);
+
+      days.forEach((day) => {
+        const row = document.createElement("div");
+        row.className = "day-row";
+        row.innerHTML = `
+          <strong>${day}</strong>
+          <input id="${day}-breakfast" type="number" min="0" max="20" step="1" value="2" aria-label="${day} breakfast count">
+          <input id="${day}-lunch" type="number" min="0" max="20" step="1" value="2" aria-label="${day} lunch count">
+          <input id="${day}-dinner" class="dinner-col" type="number" min="0" max="20" step="1" value="4" aria-label="${day} dinner count">
+          <input id="${day}-snack" class="snack-col" type="number" min="0" max="20" step="1" value="0" aria-label="${day} snack count">
+        `;
+        root.appendChild(row);
+      });
+    }
+
+    function renderDietChips() {
+      $("dietChips").innerHTML = diets.map((diet) => `
+        <label class="chip"><input type="checkbox" value="${diet}"> ${diet}</label>
+      `).join("");
+    }
+
+    function renderStaplePicker() {
+      const selected = new Set(getCheckedStaples());
+      const root = $("staplePicker");
+      root.innerHTML = Object.entries(stapleGroups).map(([group, items]) => `
+        <section class="staple-group">
+          <div class="staple-group-title">${group}</div>
+          <div class="staple-options">
+            ${items.map((item) => `
+              <label class="staple-option">
+                <input type="checkbox" value="${escapeHtml(item)}" ${selected.has(item) ? "checked" : ""}>
+                <span>${escapeHtml(item)}</span>
+              </label>
+            `).join("")}
+          </div>
+        </section>
+      `).join("");
+
+      root.querySelectorAll("input").forEach((input) => input.addEventListener("change", syncStaplesSummary));
+      renderCustomStaples();
+      syncStaplesSummary();
+    }
+
+    function renderCustomStaples() {
+      const root = $("selectedStaples");
+      const checked = getCheckedStaples();
+      const all = uniqueItems([...checked, ...customStaples]);
+      if (!all.length) {
+        root.innerHTML = `<span class="muted">No staples selected yet.</span>`;
+        return;
+      }
+      root.innerHTML = all.map((item) => {
+        const removable = customStaples.includes(item);
+        return `
+          <span class="mini-chip">
+            ${escapeHtml(item)}
+            ${removable ? `<button type="button" data-remove-staple="${escapeHtml(item)}" aria-label="Remove ${escapeHtml(item)}">x</button>` : ""}
+          </span>
+        `;
+      }).join("");
+      root.querySelectorAll("[data-remove-staple]").forEach((button) => {
+        button.addEventListener("click", () => {
+          customStaples = customStaples.filter((item) => item !== button.dataset.removeStaple);
+          syncStaplesSummary();
+        });
+      });
+    }
+
+    function bindEvents() {
+      document.querySelectorAll(".tabs button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          currentTab = btn.dataset.tab;
+          document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("active", b === btn));
+          render();
+        });
+      });
+      $("generateBtn").addEventListener("click", () => {
+        generated = generatePlan(readIntake());
+        saveState();
+        render();
+      });
+      $("sampleBtn").addEventListener("click", loadSample);
+      $("saveBtn").addEventListener("click", saveState);
+      $("exportBtn").addEventListener("click", openExport);
+      $("printBtn").addEventListener("click", () => window.print());
+      $("resetBtn").addEventListener("click", resetAll);
+      $("addStapleBtn").addEventListener("click", addCustomStaples);
+      $("customStapleInput").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          addCustomStaples();
+        }
+      });
+      $("closeModal").addEventListener("click", () => $("jsonModal").classList.remove("open"));
+      $("jsonModal").addEventListener("click", (event) => {
+        if (event.target.id === "jsonModal") $("jsonModal").classList.remove("open");
+      });
+    }
+
+    function addCustomStaples() {
+      const additions = $("customStapleInput").value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      customStaples = uniqueItems([...customStaples, ...additions]);
+      $("customStapleInput").value = "";
+      syncStaplesSummary();
+    }
+
+    function getCheckedStaples() {
+      return [...document.querySelectorAll("#staplePicker input:checked")].map((input) => input.value);
+    }
+
+    function getStapleList() {
+      return uniqueItems([...getCheckedStaples(), ...customStaples]);
+    }
+
+    function syncStaplesSummary() {
+      if (!$("staples")) return;
+      $("staples").value = getStapleList().join(", ");
+      renderCustomStaples();
+    }
+
+    function applyStapleSelections(items, customItems = []) {
+      const selected = new Set((items || []).map((item) => clean(item)));
+      const common = new Set(Object.values(stapleGroups).flat().map((item) => clean(item)));
+      document.querySelectorAll("#staplePicker input").forEach((input) => {
+        input.checked = selected.has(clean(input.value));
+      });
+      const inferredCustom = (items || []).filter((item) => !common.has(clean(item)));
+      customStaples = uniqueItems([...(customItems || []), ...inferredCustom]);
+      syncStaplesSummary();
+    }
+
+    function parseStapleText(text) {
+      return (text || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function readIntake() {
+      const counts = {};
+      days.forEach((day) => {
+        counts[day] = {};
+        mealTypes.forEach((meal) => {
+          counts[day][meal] = Number($(day + "-" + meal).value || 0);
+        });
+      });
+      return {
+        startDate: $("startDate").value,
+        currency: $("currency").value,
+        budget: Number($("budget").value || 0),
+        leftovers: $("leftovers").value,
+        counts,
+        goal: $("goal").value,
+        energyMode: $("energyMode").value,
+        targets: {
+          calories: Number($("calories").value || 2200),
+          protein: Number($("protein").value || 140),
+          carbs: Number($("carbs").value || 240),
+          fat: Number($("fat").value || 75)
+        },
+        diets: [...document.querySelectorAll("#dietChips input:checked")].map((input) => input.value),
+        allergies: $("allergies").value,
+        likes: $("likes").value,
+        dislikes: $("dislikes").value,
+        maxTime: Number($("maxTime").value),
+        lunchFormat: $("lunchFormat").value,
+        selectedStaples: getCheckedStaples(),
+        customStaples: [...customStaples],
+        staples: getStapleList().join(", "),
+        equipment: $("equipment").value,
+        prepDay: $("prepDay").value,
+        prepMinutes: Number($("prepMinutes").value || 0),
+        midPrepDay: $("midPrepDay").value,
+        midPrepMinutes: Number($("midPrepMinutes").value || 0)
+      };
+    }
+
+    function generatePlan(intake) {
+      const selected = {};
+      const totals = {};
+      const usage = {};
+      const mealUsage = {};
+      const previousDinner = {};
+      const avoided = textTokens(intake.dislikes + " " + intake.allergies);
+      const liked = textTokens(intake.likes + " " + intake.goal);
+      const stapleTokens = textTokens(intake.staples);
+
+      days.forEach((day, dayIndex) => {
+        selected[day] = {};
+        totals[day] = { calories: 0, protein: 0, carbs: 0, fat: 0, cost: 0, servings: 0 };
+        mealTypes.forEach((meal) => {
+          const servings = intake.counts[day][meal];
+          if (!servings) return;
+
+          let recipe;
+          const useLeftover = meal === "lunch"
+            && intake.leftovers !== "few"
+            && dayIndex > 0
+            && previousDinner[days[dayIndex - 1]]
+            && shouldUseLeftover(dayIndex, intake.leftovers);
+
+          if (useLeftover) {
+            recipe = previousDinner[days[dayIndex - 1]];
+          } else {
+            recipe = pickRecipe(meal, intake, {
+              avoided,
+              liked,
+              stapleTokens,
+              usage,
+              mealUsage,
+              dayIndex,
+              day,
+              selected
+            });
+          }
+
+          if (meal === "dinner") previousDinner[day] = recipe;
+          trackUsage(recipe, meal, usage, mealUsage);
+          selected[day][meal] = { recipe, servings };
+          addMealTotals(totals[day], recipe, servings);
+        });
+      });
+
+      const groceries = buildGroceries(selected, intake);
+      const prep = buildPrep(selected, intake);
+      const weeklyTotals = summarizeWeek(totals);
+      const flags = buildFlags(intake, weeklyTotals, groceries);
+      return { intake, selected, totals, weeklyTotals, groceries, prep, flags, generatedAt: new Date().toISOString() };
+    }
+
+    function shouldUseLeftover(dayIndex, leftovers) {
+      if (leftovers === "many") return dayIndex % 2 === 1 || dayIndex === 5;
+      if (leftovers === "some") return dayIndex === 1 || dayIndex === 3 || dayIndex === 5;
+      return false;
+    }
+
+    function trackUsage(recipe, meal, usage, mealUsage) {
+      usage[recipe.id] = (usage[recipe.id] || 0) + 1;
+      mealUsage[meal] = mealUsage[meal] || {};
+      mealUsage[meal][recipe.id] = (mealUsage[meal][recipe.id] || 0) + 1;
+    }
+
+    function pickRecipe(meal, intake, context) {
+      const { avoided, liked, stapleTokens, usage, mealUsage, dayIndex, selected } = context;
+      const normalizedDiets = intake.diets.map(clean);
+      const candidates = recipeLibrary.filter((recipe) => isEligibleRecipe(recipe, meal, intake, avoided, normalizedDiets));
+      const diversePool = candidates.filter((recipe) => {
+        const totalUsed = usage[recipe.id] || 0;
+        const usedForMeal = mealUsage[meal]?.[recipe.id] || 0;
+        const previousSameMeal = dayIndex > 0 && selected[days[dayIndex - 1]]?.[meal]?.recipe.id === recipe.id;
+        return totalUsed < weeklyUseLimit(meal, intake.leftovers)
+          && usedForMeal < mealUseLimit(meal)
+          && !previousSameMeal;
+      });
+
+      const pool = diversePool.length
+        ? diversePool
+        : candidates.length
+          ? candidates.filter((recipe) => {
+              const previousSameMeal = dayIndex > 0 && selected[days[dayIndex - 1]]?.[meal]?.recipe.id === recipe.id;
+              return !previousSameMeal;
+            }).length
+            ? candidates.filter((recipe) => {
+                const previousSameMeal = dayIndex > 0 && selected[days[dayIndex - 1]]?.[meal]?.recipe.id === recipe.id;
+                return !previousSameMeal;
+              })
+            : candidates
+          : recipeLibrary.filter((recipe) => recipe.mealTypes.includes(meal));
+
+      const scored = pool.map((recipe, index) => {
+        let score = 0;
+        const totalUsed = usage[recipe.id] || 0;
+        const usedForMeal = mealUsage[meal]?.[recipe.id] || 0;
+        score -= totalUsed * 18;
+        score -= usedForMeal * 24;
+        score += varietyOffset(recipe, meal, dayIndex, index);
+        if (intake.goal === "fat loss") score += recipe.macros.protein / Math.max(recipe.macros.calories / 100, 1);
+        if (intake.goal === "muscle gain" || intake.goal === "performance") score += recipe.macros.protein / 5;
+        if (intake.goal === "budget") score -= recipe.cost;
+        if (intake.goal === "convenience") score -= recipe.time / 10;
+        if (intake.lunchFormat === "portable" && recipe.tags.includes("portable")) score += 4;
+        if (normalizedDiets.includes("highprotein") && recipe.tags.includes("high-protein")) score += 5;
+        if (normalizedDiets.includes("mediterranean") && recipe.tags.includes("mediterranean")) score += 5;
+        liked.forEach((token) => {
+          if (clean(recipe.title).includes(token) || recipe.tags.some((tag) => clean(tag).includes(token))) score += 3;
+        });
+        recipe.ingredients.forEach(([item]) => {
+          if (stapleTokens.some((token) => clean(item).includes(token))) score += 1.4;
+        });
+        return { recipe, score };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      return scored[0].recipe;
+    }
+
+    function isEligibleRecipe(recipe, meal, intake, avoided, normalizedDiets) {
+        if (!recipe.mealTypes.includes(meal)) return false;
+        if (meal === "dinner" && recipe.time > intake.maxTime && intake.maxTime < 45) return false;
+        if (normalizedDiets.includes("vegetarian") && !recipe.tags.includes("vegetarian") && !recipe.tags.includes("vegan")) return false;
+        if (normalizedDiets.includes("vegan") && !recipe.tags.includes("vegan")) return false;
+        if (normalizedDiets.includes("glutenfree") && !recipe.tags.includes("gluten-free")) return false;
+        if (normalizedDiets.includes("dairyfree") && !recipe.tags.includes("dairy-free") && hasDairy(recipe)) return false;
+        if (normalizedDiets.includes("pescatarian") && hasMeat(recipe)) return false;
+        if (normalizedDiets.includes("lowcarb") && recipe.macros.carbs > 58) return false;
+        return !recipe.ingredients.some(([item]) => avoided.some((token) => clean(item).includes(token)));
+    }
+
+    function weeklyUseLimit(meal, leftovers) {
+      if (meal === "dinner") return leftovers === "many" ? 2 : 1;
+      if (meal === "lunch") return leftovers === "few" ? 1 : 2;
+      if (meal === "breakfast") return 2;
+      if (meal === "snack") return 2;
+      return 1;
+    }
+
+    function mealUseLimit(meal) {
+      if (meal === "breakfast" || meal === "snack") return 2;
+      return 1;
+    }
+
+    function varietyOffset(recipe, meal, dayIndex, index) {
+      const seed = clean(recipe.id + meal).split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+      return ((seed + dayIndex * 17 + index * 7) % 13) / 10;
+    }
+
+    function hasDairy(recipe) {
+      return recipe.ingredients.some(([item]) => /yogurt|kefir|feta|parmesan/i.test(item));
+    }
+
+    function hasMeat(recipe) {
+      return recipe.ingredients.some(([item]) => /turkey|chicken|beef|pork/i.test(item));
+    }
+
+    function addMealTotals(total, recipe, servings) {
+      total.calories += recipe.macros.calories * servings;
+      total.protein += recipe.macros.protein * servings;
+      total.carbs += recipe.macros.carbs * servings;
+      total.fat += recipe.macros.fat * servings;
+      total.cost += recipe.cost * servings;
+      total.servings += servings;
+    }
+
+    function buildGroceries(selected, intake) {
+      const map = new Map();
+      const staples = textTokens(intake.staples);
+      Object.values(selected).forEach((day) => {
+        Object.values(day).forEach(({ recipe, servings }) => {
+          const multiplier = servings / recipe.baseServings;
+          recipe.ingredients.forEach(([item, quantity, unit, aisle]) => {
+            const key = clean(item) + "|" + unit;
+            const existing = map.get(key) || { item, quantity: 0, unit, aisle, recipes: new Set(), pantryLikely: false };
+            existing.quantity += quantity * multiplier;
+            existing.recipes.add(recipe.title);
+            existing.pantryLikely = existing.pantryLikely || staples.some((token) => clean(item).includes(token));
+            map.set(key, existing);
+          });
+        });
+      });
+      return [...map.values()].map((item) => ({
+        ...item,
+        quantity: roundQty(item.quantity),
+        recipes: [...item.recipes]
+      })).sort((a, b) => a.aisle.localeCompare(b.aisle) || a.item.localeCompare(b.item));
+    }
+
+    function buildPrep(selected, intake) {
+      const tasks = [];
+      const seen = new Set();
+      Object.entries(selected).forEach(([day, meals]) => {
+        Object.values(meals).forEach(({ recipe }) => {
+          recipe.prep.forEach((task) => {
+            const key = recipe.id + task;
+            if (!seen.has(key)) {
+              seen.add(key);
+              tasks.push({ recipe: recipe.title, task, time: recipe.time });
+            }
+          });
+        });
+      });
+      const mainLimit = intake.prepMinutes || 120;
+      const main = [];
+      const mid = [];
+      let mainUsed = 0;
+      tasks.forEach((task) => {
+        const estimate = Math.max(8, Math.round(task.time * 0.35));
+        if (mainUsed + estimate <= mainLimit) {
+          main.push({ ...task, estimate });
+          mainUsed += estimate;
+        } else {
+          mid.push({ ...task, estimate: Math.min(20, estimate) });
+        }
+      });
+      return [
+        { day: intake.prepDay, label: "Main prep", minutes: main.reduce((sum, task) => sum + task.estimate, 0), tasks: main },
+        { day: intake.midPrepDay, label: "Midweek reset", minutes: mid.reduce((sum, task) => sum + task.estimate, 0), tasks: mid }
+      ];
+    }
+
+    function summarizeWeek(totals) {
+      const week = { calories: 0, protein: 0, carbs: 0, fat: 0, cost: 0, servings: 0 };
+      Object.values(totals).forEach((day) => {
+        Object.keys(week).forEach((key) => week[key] += day[key] || 0);
+      });
+      return week;
+    }
+
+    function buildFlags(intake, weeklyTotals, groceries) {
+      const flags = [];
+      if (intake.energyMode === "deficit") flags.push("Deficit mode prioritizes protein density, vegetables, and planned snacks to reduce last-minute choices.");
+      if (intake.energyMode === "surplus") flags.push("Surplus mode keeps protein high and uses rice, oats, pasta, dairy, and healthy fats to raise calories without excessive cooking.");
+      if (weeklyTotals.cost > intake.budget && intake.budget > 0) flags.push("Estimated recipe cost is over budget. Swap seafood, beef, or specialty condiments for tofu, beans, eggs, or chicken.");
+      if (groceries.filter((item) => item.pantryLikely).length) flags.push("Staple-aware grocery list marks likely pantry items so you can check before buying.");
+      flags.push("Adult AMDR reference ranges commonly used in planning: carbs 45-65%, fat 20-35%, protein 10-35% of calories. Individual targets can differ.");
+      return flags;
+    }
+
+    function render() {
+      const root = $("output");
+      if (!generated && currentTab !== "widgets" && currentTab !== "logic") {
+        root.innerHTML = `
+          <div class="empty">
+            <div>
+              <strong>Fill the intake or load sample data.</strong>
+              <span>Then generate a week to inspect the meal logic, groceries, recipes, and prep timeline.</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      if (currentTab === "plan") root.innerHTML = renderPlan();
+      if (currentTab === "recipes") root.innerHTML = renderRecipes();
+      if (currentTab === "grocery") root.innerHTML = renderGrocery();
+      if (currentTab === "prep") root.innerHTML = renderPrep();
+      if (currentTab === "logic") root.innerHTML = renderLogic();
+      if (currentTab === "widgets") root.innerHTML = renderWidgets();
+    }
+
+    function renderPlan() {
+      const week = generated.weeklyTotals;
+      return `
+        ${renderSummary()}
+        <div class="notice">${generated.flags.join(" ")}</div>
+        <div class="plan-grid">
+          ${days.map((day) => `
+            <article class="day-card">
+              <div class="day-title"><span>${day}</span><span>${Math.round(generated.totals[day].calories)} kcal</span></div>
+              ${mealTypes.map((meal) => {
+                const slot = generated.selected[day][meal];
+                if (!slot) return `<div class="meal-slot"><div class="meal-label">${meal}</div><div class="muted">No service</div></div>`;
+                const r = slot.recipe;
+                return `
+                  <div class="meal-slot">
+                    <div class="meal-label">${meal} for ${slot.servings}</div>
+                    <div class="recipe-title">${r.title}</div>
+                    <div class="recipe-meta">${r.time} min · ${r.macros.calories} kcal · P ${r.macros.protein}g C ${r.macros.carbs}g F ${r.macros.fat}g per serving</div>
+                  </div>
+                `;
+              }).join("")}
+            </article>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderSummary() {
+      const week = generated.weeklyTotals;
+      const perServing = (value) => week.servings ? Math.round(value / week.servings) : 0;
+      const target = generated.intake.targets;
+      return `
+        <div class="summary-strip">
+          <div class="metric"><b>${Math.round(week.servings)}</b><span>planned servings</span></div>
+          <div class="metric"><b>${perServing(week.calories)}</b><span>avg kcal per serving</span></div>
+          <div class="metric"><b>${perServing(week.protein)}g</b><span>avg protein per serving</span></div>
+          <div class="metric"><b>${generated.intake.currency}${Math.round(week.cost)}</b><span>estimated recipe cost</span></div>
+        </div>
+      `;
+    }
+
+    function renderRecipes() {
+      const used = new Map();
+      Object.values(generated.selected).forEach((day) => {
+        Object.values(day).forEach(({ recipe }) => used.set(recipe.id, recipe));
+      });
+      return `
+        ${renderSummary()}
+        <div class="recipe-bank">
+          ${[...used.values()].map((recipe) => `
+            <article class="recipe-card">
+              <div>
+                <h3>${recipe.title}</h3>
+                <div class="tagline">${recipe.tags.map((tag, index) => `<span class="tag ${["sage","gold","plum","alt"][index % 4]}">${tag}</span>`).join("")}</div>
+              </div>
+              <div class="muted">${recipe.time} min · ${recipe.macros.calories} kcal · P ${recipe.macros.protein}g C ${recipe.macros.carbs}g F ${recipe.macros.fat}g</div>
+              <div><strong>Ingredients:</strong> ${recipe.ingredients.map(([item]) => item).join(", ")}.</div>
+              <div><strong>Prep:</strong> ${recipe.prep.join(" ")}</div>
+            </article>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderGrocery() {
+      return `
+        ${renderSummary()}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Aisle</th><th>Item</th><th>Qty</th><th>Used in</th><th>Staple check</th></tr></thead>
+            <tbody>
+              ${generated.groceries.map((g) => `
+                <tr>
+                  <td>${g.aisle}</td>
+                  <td><strong>${g.item}</strong></td>
+                  <td>${g.quantity} ${g.unit}</td>
+                  <td>${g.recipes.join(", ")}</td>
+                  <td>${g.pantryLikely ? "Likely on hand" : "Buy if needed"}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderPrep() {
+      return `
+        ${renderSummary()}
+        <div class="prep-timeline">
+          ${generated.prep.map((block) => `
+            <section class="prep-item">
+              <div>
+                <div class="prep-time">${block.day}</div>
+                <div>${block.label}</div>
+                <div class="muted">${block.minutes} min planned</div>
+              </div>
+              <div>
+                ${block.tasks.length ? block.tasks.map((task) => `
+                  <p><strong>${task.estimate} min:</strong> ${task.task} <span class="muted">(${task.recipe})</span></p>
+                `).join("") : `<p class="muted">No extra tasks assigned.</p>`}
+              </div>
+            </section>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderLogic() {
+      const generatedNote = generated ? `<div class="notice">${generated.flags.join(" ")}</div>` : "";
+      return `
+        ${generatedNote}
+        <div class="recipe-bank">
+          <article class="recipe-card">
+            <h3>Planning Rules</h3>
+            <p>1. Inventory and staples are read first, then the grocery list marks likely pantry items.</p>
+            <p>2. Diet tags and allergies filter recipes before scoring.</p>
+            <p>3. Weekly variety rules cap recipe reuse by meal type before goal scoring is applied.</p>
+            <p>4. The scorer favors protein density for fat loss, higher protein and energy for gain/performance, lower cost for budget, and shorter time for convenience.</p>
+            <p>5. Lunches reuse prior dinners only on planned leftover days, reducing food waste without making the whole week repetitive.</p>
+            <p>6. Prep tasks are packed into the main prep window first, then overflow to the midweek reset.</p>
+          </article>
+          <article class="recipe-card">
+            <h3>Best-Practice Basis</h3>
+            <p>Meal planning should account for existing food, schedule, balanced food groups, snacks, grocery consolidation, leftovers, and realistic prep windows. Macro targets are handled as estimates and should be adjusted by a clinician or dietitian for medical cases.</p>
+          </article>
+        </div>
+        <h2 style="margin-top:16px">Research Sources</h2>
+        <div class="source-list">
+          ${sources.map(([name, desc, url]) => `
+            <article class="recipe-card">
+              <a href="${url}" target="_blank" rel="noreferrer">${name}</a>
+              <span class="muted">${desc}</span>
+            </article>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderWidgets() {
+      return `
+        <div class="recipe-bank">
+          <article class="recipe-card">
+            <h3>Best API Fit: Edamam</h3>
+            <p>Strong fit for a production widget when you need custom meals per day, nutrient filters, diet labels, recipe search, and shopping-list support.</p>
+            <a href="https://developer.edamam.com/meal-planner-api" target="_blank" rel="noreferrer">Open Edamam Meal Planner API</a>
+          </article>
+          <article class="recipe-card">
+            <h3>Best General Food API: Spoonacular</h3>
+            <p>Strong fit for recipe search, nutrition analysis, ingredient parsing, diets, grocery products, generated meal plans, and shoppable workflows.</p>
+            <a href="https://apis.guru/apis/spoonacular.com" target="_blank" rel="noreferrer">Open Spoonacular overview</a>
+          </article>
+          <article class="recipe-card">
+            <h3>Best Macro Engine: FitChef</h3>
+            <p>Good fit when the main product requirement is personalized macro calculation plus dynamic meal-plan generation through a partner API.</p>
+            <a href="https://fitchef.com/solutions/partners/meal-plan-api/" target="_blank" rel="noreferrer">Open FitChef API</a>
+          </article>
+          <article class="recipe-card">
+            <h3>Consumer Reference: MealBoard / Mealime</h3>
+            <p>Useful references for UX patterns: calendar planning, recipe import, pantry inventory, grocery-list aggregation, and prep reminders.</p>
+            <a href="https://start.mealime.com/" target="_blank" rel="noreferrer">Open Mealime</a>
+          </article>
+        </div>
+      `;
+    }
+
+    function loadSample() {
+      $("budget").value = 190;
+      $("currency").value = "A$";
+      $("leftovers").value = "some";
+      $("goal").value = "family health";
+      $("energyMode").value = "maintenance";
+      $("calories").value = 2200;
+      $("protein").value = 145;
+      $("carbs").value = 240;
+      $("fat").value = 75;
+      $("allergies").value = "No peanuts. Mild spice is okay.";
+      $("likes").value = "Mediterranean, Korean, tacos, salmon, high protein breakfasts, portable lunches";
+      $("dislikes").value = "Mushrooms, very spicy meals";
+      $("maxTime").value = 35;
+      $("lunchFormat").value = "portable";
+      applyStapleSelections(
+        ["eggs", "Greek yogurt", "oats", "rice", "corn tortillas", "spinach", "cucumber", "tomatoes", "olive oil", "black beans", "mango"],
+        ["frozen mango", "boneless chicken pieces"]
+      );
+      $("equipment").value = "Oven, blender, rice cooker, air fryer";
+      $("prepDay").value = "Sunday";
+      $("prepMinutes").value = 120;
+      $("midPrepDay").value = "Wednesday";
+      $("midPrepMinutes").value = 45;
+
+      days.forEach((day, index) => {
+        $(day + "-breakfast").value = index < 5 ? 2 : 4;
+        $(day + "-lunch").value = index < 5 ? 2 : 3;
+        $(day + "-dinner").value = 4;
+        $(day + "-snack").value = index < 5 ? 2 : 4;
+      });
+      document.querySelectorAll("#dietChips input").forEach((input) => {
+        input.checked = ["High-protein", "Mediterranean", "Kid-friendly"].includes(input.value);
+      });
+      generated = generatePlan(readIntake());
+      saveState();
+      render();
+    }
+
+    function saveState() {
+      const payload = { intake: readIntake(), generated, currentTab };
+      localStorage.setItem(stateKey, JSON.stringify(payload));
+      flashButton($("saveBtn"), "Saved");
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(stateKey);
+      if (!raw) return;
+      try {
+        const payload = JSON.parse(raw);
+        applyIntake(payload.intake);
+        generated = payload.generated;
+        currentTab = payload.currentTab || "plan";
+        document.querySelectorAll(".tabs button").forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === currentTab));
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
+    function applyIntake(intake) {
+      if (!intake) return;
+      ["startDate","currency","budget","leftovers","goal","energyMode","allergies","likes","dislikes","maxTime","lunchFormat","equipment","prepDay","prepMinutes","midPrepDay","midPrepMinutes"].forEach((id) => {
+        if ($(id) && intake[id] !== undefined) $(id).value = intake[id];
+      });
+      if (intake.targets) {
+        $("calories").value = intake.targets.calories;
+        $("protein").value = intake.targets.protein;
+        $("carbs").value = intake.targets.carbs;
+        $("fat").value = intake.targets.fat;
+      }
+      if (intake.counts) {
+        days.forEach((day) => mealTypes.forEach((meal) => {
+          const input = $(day + "-" + meal);
+          if (input && intake.counts[day]) input.value = intake.counts[day][meal] || 0;
+        }));
+      }
+      document.querySelectorAll("#dietChips input").forEach((input) => {
+        input.checked = intake.diets && intake.diets.includes(input.value);
+      });
+      applyStapleSelections(
+        intake.selectedStaples || parseStapleText(intake.staples),
+        intake.customStaples || []
+      );
+    }
+
+    function resetAll() {
+      localStorage.removeItem(stateKey);
+      generated = null;
+      customStaples = [];
+      document.querySelectorAll("input, textarea").forEach((el) => {
+        if (el.type === "checkbox") el.checked = false;
+        else if (el.type !== "date") el.value = "";
+      });
+      days.forEach((day) => {
+        $(day + "-breakfast").value = 2;
+        $(day + "-lunch").value = 2;
+        $(day + "-dinner").value = 4;
+        $(day + "-snack").value = 0;
+      });
+      $("prepMinutes").value = 120;
+      $("midPrepMinutes").value = 45;
+      $("currency").value = "A$";
+      setDefaultDate();
+      syncStaplesSummary();
+      render();
+    }
+
+    function openExport() {
+      const data = generated || { intake: readIntake(), message: "Generate a plan to export recipes, groceries, and prep schedule." };
+      $("jsonText").textContent = JSON.stringify(data, null, 2);
+      $("jsonModal").classList.add("open");
+    }
+
+    function textTokens(text) {
+      return (text || "")
+        .toLowerCase()
+        .split(/[^a-z0-9]+/g)
+        .map(clean)
+        .filter((token) => token.length > 2);
+    }
+
+    function clean(value) {
+      return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function roundQty(value) {
+      if (value >= 10) return Math.round(value);
+      if (value >= 2) return Math.round(value * 2) / 2;
+      return Math.round(value * 4) / 4;
+    }
+
+    function uniqueItems(items) {
+      const seen = new Set();
+      return (items || []).map((item) => String(item).trim()).filter((item) => {
+        if (!item) return false;
+        const key = clean(item);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function flashButton(button, text) {
+      const old = button.textContent;
+      button.textContent = text;
+      setTimeout(() => button.textContent = old, 900);
+    }
+
+    init();
+  </script>
+</body>
+</html>
