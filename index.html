@@ -165,25 +165,65 @@
 
     .meal-counts {
       display: grid;
-      gap: 8px;
+      gap: 10px;
     }
 
     .day-row {
       display: grid;
-      grid-template-columns: 46px repeat(4, minmax(0, 1fr));
-      gap: 6px;
-      align-items: center;
-      font-size: 13px;
+      gap: 9px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 10px;
     }
 
-    .day-row strong { font-size: 13px; }
-    .day-row input { min-height: 34px; padding: 6px 8px; }
+    .day-row strong {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
 
-    .day-head {
+    .day-total {
       color: var(--muted);
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .meal-count-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .meal-count-field {
+      display: grid;
+      grid-template-columns: 1fr 58px;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      border-radius: var(--radius);
+      padding: 8px;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .meal-count-field span {
+      color: var(--muted);
       font-size: 11px;
+      font-weight: 750;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .meal-count-field input {
+      min-height: 34px;
+      padding: 6px 8px;
       text-align: center;
+      font-weight: 850;
     }
 
     .chips {
@@ -572,10 +612,7 @@
       .app { padding: 12px; }
       .grid-2, .grid-3 { grid-template-columns: 1fr; }
       .summary-strip { grid-template-columns: 1fr; }
-      .day-row {
-        grid-template-columns: 42px repeat(2, minmax(0, 1fr));
-      }
-      .day-row .snack-col, .day-row .dinner-col { margin-top: 4px; }
+      .meal-count-grid { grid-template-columns: 1fr; }
       .staple-options { grid-template-columns: 1fr; }
       .custom-staple-row { grid-template-columns: 1fr; }
       .prep-item { grid-template-columns: 1fr; }
@@ -632,7 +669,8 @@
         </section>
 
         <section class="section">
-          <h2>2. Meal Counts</h2>
+          <h2>2. Who Is Eating?</h2>
+          <p class="muted" style="margin: -4px 0 12px; line-height: 1.4; font-size: 13px;">Enter the number of people eating each meal on each day. Use 0 when that meal should not be planned.</p>
           <div class="meal-counts" id="mealCounts"></div>
         </section>
 
@@ -1092,23 +1130,50 @@
     function renderMealCounts() {
       const root = $("mealCounts");
       root.innerHTML = "";
-      const head = document.createElement("div");
-      head.className = "day-row";
-      head.innerHTML = "<span></span><span class='day-head'>Breakfast</span><span class='day-head'>Lunch</span><span class='day-head dinner-col'>Dinner</span><span class='day-head snack-col'>Snack</span>";
-      root.appendChild(head);
 
       days.forEach((day) => {
         const row = document.createElement("div");
         row.className = "day-row";
         row.innerHTML = `
-          <strong>${day}</strong>
-          <input id="${day}-breakfast" type="number" min="0" max="20" step="1" value="2" aria-label="${day} breakfast count">
-          <input id="${day}-lunch" type="number" min="0" max="20" step="1" value="2" aria-label="${day} lunch count">
-          <input id="${day}-dinner" class="dinner-col" type="number" min="0" max="20" step="1" value="4" aria-label="${day} dinner count">
-          <input id="${day}-snack" class="snack-col" type="number" min="0" max="20" step="1" value="0" aria-label="${day} snack count">
+          <strong>${day}<span class="day-total" id="${day}-total">8 meal servings</span></strong>
+          <div class="meal-count-grid">
+            ${mealTypes.map((meal) => `
+              <label class="meal-count-field">
+                <span class="meal-count-label">${mealLabel(meal)}<span>people eating</span></span>
+                <input id="${day}-${meal}" type="number" min="0" max="20" step="1" value="${defaultMealCount(meal)}" aria-label="${day} ${mealLabel(meal)} people eating">
+              </label>
+            `).join("")}
+          </div>
         `;
         root.appendChild(row);
       });
+      bindMealCountTotals();
+    }
+
+    function mealLabel(meal) {
+      return meal.charAt(0).toUpperCase() + meal.slice(1);
+    }
+
+    function defaultMealCount(meal) {
+      if (meal === "dinner") return 4;
+      if (meal === "snack") return 0;
+      return 2;
+    }
+
+    function bindMealCountTotals() {
+      days.forEach((day) => {
+        mealTypes.forEach((meal) => {
+          const input = $(day + "-" + meal);
+          input.addEventListener("input", () => updateMealCountTotal(day));
+        });
+        updateMealCountTotal(day);
+      });
+    }
+
+    function updateMealCountTotal(day) {
+      const total = mealTypes.reduce((sum, meal) => sum + Number($(day + "-" + meal).value || 0), 0);
+      const label = total === 1 ? "meal serving" : "meal servings";
+      $(day + "-total").textContent = `${total} ${label}`;
     }
 
     function renderDietChips() {
