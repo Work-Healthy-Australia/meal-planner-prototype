@@ -1,0 +1,41 @@
+{
+  "about": {
+    "quote": "You don't need to overhaul your whole life overnight. You just need the right guidance and someone in your corner.",
+    "bio_p1": "I'm Jess — a women's health coach passionate about helping women feel genuinely good in their bodies, not just look a certain way. I've been in the trenches of the health and fitness world long enough to know that generic plans don't work. What works is understanding your body, your life, and your goals.",
+    "bio_p2": "I work across five pillars: how you move, how you eat, how you think, what you supplement, and what your bloodwork is telling you. Because sustainable health isn't one-dimensional.",
+    "credentials": [
+      "Certified Personal Trainer",
+      "Women's Health & Nutrition Specialist",
+      "Mindset & Behaviour Change Coach",
+      "Evidence-based supplementation guidance",
+      "Blood biomarker interpretation for everyday women"
+    ]
+  },
+  "story": {
+    "quote": "most of my time that isn't spent working or training is spent cooking, cleaning, grocery shopping and driving my sister around. and honestly? it makes me feel so content.",
+    "sub": "Grateful that I can show up for my family. Genuinely calm.\n\nThis is the version of health I coach towards — not just the gym, not just macros. The kind of wellbeing that makes everyday life feel good."
+  },
+  "testimonials": [
+    {
+      "quote": "Working with Jess completely changed how I think about food. I stopped obsessing over calories and started actually nourishing myself. Down 8kg and I feel stronger than I ever have.",
+      "name": "Sarah M.",
+      "detail": "Sydney · 6 months",
+      "emoji": "🌸",
+      "emoji_bg": "#fdeee9"
+    },
+    {
+      "quote": "Jess looked at my blood results and spotted things my GP never mentioned. We adjusted my supplements and within 6 weeks my energy levels were completely different. Life-changing.",
+      "name": "Emma T.",
+      "detail": "Melbourne · 3 months",
+      "emoji": "🌿",
+      "emoji_bg": "#edf5ef"
+    },
+    {
+      "quote": "I've tried every program out there. Jess is different because she actually listens. The mindset work combined with the training plan is the first thing that's ever actually stuck for me.",
+      "name": "Bec R.",
+      "detail": "Brisbane · 4 months",
+      "emoji": "💜",
+      "emoji_bg": "#f4eef9"
+    }
+  ]
+}

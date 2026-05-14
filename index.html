@@ -1139,10 +1139,10 @@
         <div class="about-content">
           <p class="section-label">About Jess</p>
           <h2 class="section-heading" style="margin-bottom:0">Helping women who are done with doing it alone.</h2>
-          <blockquote>
+          <blockquote id="about-quote">
             "You don't need to overhaul your whole life overnight. You just need the right guidance and someone in your corner."
           </blockquote>
-          <div class="about-body">
+          <div class="about-body" id="about-body">
             <p>
               I'm Jess — a women's health coach passionate about helping women feel genuinely good in their bodies, not just look a certain way. I've been in the trenches of the health and fitness world long enough to know that generic plans don't work. What works is understanding your body, your life, and your goals.
             </p>
@@ -1150,7 +1150,7 @@
               I work across five pillars: how you move, how you eat, how you think, what you supplement, and what your bloodwork is telling you. Because sustainable health isn't one-dimensional.
             </p>
           </div>
-          <ul class="credential-list">
+          <ul class="credential-list" id="credential-list">
             <li>Certified Personal Trainer</li>
             <li>Women's Health & Nutrition Specialist</li>
             <li>Mindset & Behaviour Change Coach</li>
@@ -1179,10 +1179,10 @@
       </div>
       <div class="jess-quote-text">
         <p class="label">Real life, not just reels</p>
-        <blockquote>
+        <blockquote id="story-quote">
           "most of my time that isn't spent working or training is spent cooking, cleaning, grocery shopping and driving my sister around. and honestly? it makes me feel <em>so content.</em>"
         </blockquote>
-        <p class="jess-quote-sub">
+        <p class="jess-quote-sub" id="story-sub">
           Grateful that I can show up for my family. Genuinely calm.<br><br>
           This is the version of health I coach towards — not just the gym, not just macros. The kind of wellbeing that makes everyday life feel good.
         </p>
@@ -1199,43 +1199,8 @@
       <p class="section-label">Client results</p>
       <h2 class="section-heading">Women who made the shift.</h2>
       <p class="section-sub">Real results from real women. No before-and-after obsession — just feeling better, moving better, living better.</p>
-      <div class="testimonials-grid">
-        <div class="tcard">
-          <div class="tcard-stars">★★★★★</div>
-          <p class="tcard-quote">Working with Jess completely changed how I think about food. I stopped obsessing over calories and started actually nourishing myself. Down 8kg and I feel stronger than I ever have.</p>
-          <div class="tcard-footer">
-            <div class="tcard-avatar" style="background:#fdeee9">🌸</div>
-            <div>
-              <div class="tcard-name">Sarah M.</div>
-              <div class="tcard-detail">Sydney · 6 months</div>
-            </div>
-            <span class="tcard-ig">via Instagram</span>
-          </div>
-        </div>
-        <div class="tcard">
-          <div class="tcard-stars">★★★★★</div>
-          <p class="tcard-quote">Jess looked at my blood results and spotted things my GP never mentioned. We adjusted my supplements and within 6 weeks my energy levels were completely different. Life-changing.</p>
-          <div class="tcard-footer">
-            <div class="tcard-avatar" style="background:#edf5ef">🌿</div>
-            <div>
-              <div class="tcard-name">Emma T.</div>
-              <div class="tcard-detail">Melbourne · 3 months</div>
-            </div>
-            <span class="tcard-ig">via Instagram</span>
-          </div>
-        </div>
-        <div class="tcard">
-          <div class="tcard-stars">★★★★★</div>
-          <p class="tcard-quote">I've tried every program out there. Jess is different because she actually listens. The mindset work combined with the training plan is the first thing that's ever actually stuck for me.</p>
-          <div class="tcard-footer">
-            <div class="tcard-avatar" style="background:#f4eef9">💜</div>
-            <div>
-              <div class="tcard-name">Bec R.</div>
-              <div class="tcard-detail">Brisbane · 4 months</div>
-            </div>
-            <span class="tcard-ig">via Instagram</span>
-          </div>
-        </div>
+      <div class="testimonials-grid" id="testimonials-grid">
+        <!-- populated from content.json -->
       </div>
     </div>
   </section>
@@ -1268,5 +1233,64 @@
     </div>
   </footer>
 
+  <script>
+    (async () => {
+      try {
+        const res = await fetch('/content.json', { cache: 'no-store' });
+        if (!res.ok) return;
+        const c = await res.json();
+
+        // About quote
+        const aq = document.getElementById('about-quote');
+        if (aq && c.about?.quote) aq.textContent = '“' + c.about.quote + '”';
+
+        // About bio
+        const ab = document.getElementById('about-body');
+        if (ab && (c.about?.bio_p1 || c.about?.bio_p2)) {
+          ab.innerHTML = [c.about.bio_p1, c.about.bio_p2]
+            .filter(Boolean)
+            .map(p => `<p>${p}</p>`)
+            .join('');
+        }
+
+        // Credentials
+        const cl = document.getElementById('credential-list');
+        if (cl && c.about?.credentials?.length) {
+          cl.innerHTML = c.about.credentials.map(cr => `<li>${cr}</li>`).join('');
+        }
+
+        // Story quote
+        const sq = document.getElementById('story-quote');
+        if (sq && c.story?.quote) sq.textContent = '“' + c.story.quote + '”';
+
+        // Story sub
+        const ss = document.getElementById('story-sub');
+        if (ss && c.story?.sub) {
+          ss.innerHTML = c.story.sub.replace(/\n/g, '<br>');
+        }
+
+        // Testimonials
+        const grid = document.getElementById('testimonials-grid');
+        if (grid && c.testimonials?.length) {
+          grid.innerHTML = c.testimonials.map(t => `
+            <div class="tcard">
+              <div class="tcard-stars">★★★★★</div>
+              <p class="tcard-quote">${t.quote}</p>
+              <div class="tcard-footer">
+                <div class="tcard-avatar" style="background:${t.emoji_bg}">${t.emoji}</div>
+                <div>
+                  <div class="tcard-name">${t.name}</div>
+                  <div class="tcard-detail">${t.detail}</div>
+                </div>
+                <span class="tcard-ig">via Instagram</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (_) {
+        // content.json unavailable — static fallback already in the DOM
+      }
+    })();
+  </script>
 </body>
 </html>

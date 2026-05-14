@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Site Editor — jessmurray.fitness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #faf8f4;
+      --warm:  #f4ede4;
+      --sage:  #7a9e82;
+      --sage-dk: #5a7d62;
+      --ink:   #1c1c1a;
+      --muted: #6b6961;
+      --line:  #e5dfd8;
+      --red:   #c0392b;
+      --green: #27ae60;
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 12px 40px rgba(28,28,26,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .login-logo {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .login-logo span { color: var(--sage-dk); }
+    .login-card p { font-size: 14px; color: var(--muted); line-height: 1.5; margin-top: -8px; }
+
+    /* ── EDITOR ── */
+    #editor-screen { display: none; }
+    header {
+      background: var(--ink);
+      color: #fff;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-logo { font-size: 15px; font-weight: 700; }
+    .header-logo span { color: var(--sage); }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .header-status { font-size: 13px; color: rgba(255,255,255,0.55); }
+
+    main { max-width: 820px; margin: 0 auto; padding: 36px 24px 80px; display: grid; gap: 28px; }
+
+    /* ── FORM ELEMENTS ── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .card-head h2 { font-size: 15px; font-weight: 700; }
+    .card-head p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .card-body { padding: 22px; display: grid; gap: 18px; }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    input[type="text"], input[type="password"], textarea {
+      font: inherit;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--cream);
+      outline: none;
+      transition: border-color 0.15s;
+      resize: vertical;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    textarea:focus { border-color: var(--sage); background: #fff; }
+    textarea { min-height: 80px; line-height: 1.5; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--ink); color: #fff; }
+    .btn-primary:hover { background: #333; }
+    .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+    .btn-sage { background: var(--sage); color: #fff; }
+    .btn-sage:hover { background: var(--sage-dk); }
+    .btn-sm { padding: 7px 14px; font-size: 13px; }
+    .btn-danger { background: #fff; color: var(--red); border: 1.5px solid #f0c0bc; }
+    .btn-danger:hover { background: #fdf0ef; }
+
+    /* ── TESTIMONIALS ── */
+    .tcard-editor {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .tcard-editor-head {
+      background: var(--warm);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .tcard-editor-body { padding: 16px; display: grid; gap: 12px; }
+    .tcard-editor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .add-btn-row { display: flex; justify-content: flex-end; margin-top: 4px; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--ink);
+      color: #fff;
+      border-radius: 999px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform 0.3s ease;
+      z-index: 100;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.error { background: var(--red); }
+
+    @media (max-width: 600px) {
+      .tcard-editor-row { grid-template-columns: 1fr; }
+      header { padding: 0 16px; }
+      main { padding: 20px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div>
+      <div class="login-logo">jess<span>murray</span>.fitness</div>
+      <p>Site editor — enter your password to make changes.</p>
+    </div>
+    <label>Password
+      <input type="password" id="pw-input" placeholder="Enter your admin password" autocomplete="current-password">
+    </label>
+    <button class="btn btn-primary" id="login-btn">Sign in →</button>
+    <p id="login-error" style="color:#c0392b;font-size:13px;display:none">Incorrect password. Try again.</p>
+  </div>
+</div>
+
+<!-- EDITOR -->
+<div id="editor-screen">
+  <header>
+    <div class="header-logo">jess<span>murray</span>.fitness — Site Editor</div>
+    <div class="header-actions">
+      <span class="header-status" id="save-status"></span>
+      <button class="btn btn-sage btn-sm" id="save-btn">Save changes</button>
+      <a href="/" target="_blank" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2)">View site ↗</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ABOUT -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2>About Jess</h2>
+          <p>Your bio and quote that appear in the About section</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <label>Your quote (displayed in the about card)
+          <textarea id="about-quote" rows="3"></textarea>
+        </label>
+        <label>Bio — first paragraph
+          <textarea id="about-bio-p1" rows="4"></textarea>
+        </label>
+        <label>Bio — second paragraph
+          <textarea id="about-bio-p2" rows="3"></textarea>
+        </label>
+        <label>Credentials (one per line)
+          <textarea id="about-credentials" rows="6"></textarea>
+        </label>
+      </div>
+    </div>
+
+    <!-- STORY QUOTE -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2>Your story quote</h2>
+          <p>The big dark section with your personal quote from Instagram</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <label>Main quote
+          <textarea id="story-quote" rows="3"></textarea>
+        </label>
+        <label>Supporting text (below the quote)
+          <textarea id="story-sub" rows="3"></textarea>
+        </label>
+      </div>
+    </div>
+
+    <!-- TESTIMONIALS -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2>Client testimonials</h2>
+          <p>Up to 6 testimonials — shown as cards on the site</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="testimonials-list"></div>
+        <div class="add-btn-row">
+          <button class="btn btn-sm" id="add-testimonial-btn" style="border:1.5px dashed var(--line);background:transparent">+ Add testimonial</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let adminPassword = '';
+  let content = null;
+
+  // ── LOGIN ──
+  document.getElementById('login-btn').addEventListener('click', tryLogin);
+  document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+  async function tryLogin() {
+    const pw = document.getElementById('pw-input').value.trim();
+    if (!pw) return;
+    adminPassword = pw;
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('login-btn').textContent = 'Loading…';
+
+    try {
+      const res = await fetch('/content.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Could not load content');
+      content = await res.json();
+      showEditor();
+    } catch {
+      // If content.json load fails for another reason, still try to show editor
+      // We'll validate password on first save attempt
+      const res = await fetch('/api/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pw, content: null, validate_only: true }),
+      });
+      if (res.status === 401) {
+        document.getElementById('login-error').style.display = 'block';
+        document.getElementById('login-btn').textContent = 'Sign in →';
+        adminPassword = '';
+        return;
+      }
+      content = await (await fetch('/content.json', { cache: 'no-store' })).json();
+      showEditor();
+    }
+    document.getElementById('login-btn').textContent = 'Sign in →';
+  }
+
+  function showEditor() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('editor-screen').style.display = 'block';
+    populateForm();
+  }
+
+  // ── POPULATE ──
+  function populateForm() {
+    document.getElementById('about-quote').value       = content.about.quote || '';
+    document.getElementById('about-bio-p1').value      = content.about.bio_p1 || '';
+    document.getElementById('about-bio-p2').value      = content.about.bio_p2 || '';
+    document.getElementById('about-credentials').value = (content.about.credentials || []).join('\n');
+    document.getElementById('story-quote').value       = content.story.quote || '';
+    document.getElementById('story-sub').value         = content.story.sub || '';
+    renderTestimonials();
+  }
+
+  // ── TESTIMONIALS ──
+  const EMOJIS = ['🌸','🌿','💜','⭐','🔥','💪'];
+  const BKGS   = ['#fdeee9','#edf5ef','#f4eef9','#fdf8ec','#fdeee9','#edf5ef'];
+
+  function renderTestimonials() {
+    const list = document.getElementById('testimonials-list');
+    list.innerHTML = '';
+    (content.testimonials || []).forEach((t, i) => {
+      list.appendChild(makeTestimonialCard(t, i));
+    });
+  }
+
+  function makeTestimonialCard(t, i) {
+    const wrap = document.createElement('div');
+    wrap.className = 'tcard-editor';
+    wrap.style.marginBottom = '14px';
+    wrap.innerHTML = `
+      <div class="tcard-editor-head">
+        <span>Testimonial ${i + 1}</span>
+        <button class="btn btn-danger btn-sm" data-remove="${i}">Remove</button>
+      </div>
+      <div class="tcard-editor-body">
+        <label>Quote
+          <textarea data-field="quote" data-idx="${i}" rows="3">${esc(t.quote)}</textarea>
+        </label>
+        <div class="tcard-editor-row">
+          <label>Name <input type="text" data-field="name" data-idx="${i}" value="${esc(t.name)}"></label>
+          <label>Location &amp; duration <input type="text" data-field="detail" data-idx="${i}" value="${esc(t.detail)}" placeholder="Sydney · 6 months"></label>
+        </div>
+      </div>
+    `;
+    wrap.querySelector('[data-remove]').addEventListener('click', () => {
+      content.testimonials.splice(i, 1);
+      renderTestimonials();
+    });
+    wrap.querySelectorAll('[data-field]').forEach(el => {
+      el.addEventListener('input', () => {
+        const idx   = Number(el.dataset.idx);
+        const field = el.dataset.field;
+        content.testimonials[idx][field] = el.value;
+      });
+    });
+    return wrap;
+  }
+
+  document.getElementById('add-testimonial-btn').addEventListener('click', () => {
+    if ((content.testimonials || []).length >= 6) {
+      showToast('Maximum 6 testimonials', true);
+      return;
+    }
+    const i = content.testimonials.length;
+    content.testimonials.push({
+      quote: '',
+      name: '',
+      detail: '',
+      emoji: EMOJIS[i % EMOJIS.length],
+      emoji_bg: BKGS[i % BKGS.length],
+    });
+    renderTestimonials();
+    // scroll to the new card
+    document.getElementById('testimonials-list').lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // ── COLLECT ──
+  function collectContent() {
+    content.about.quote       = document.getElementById('about-quote').value.trim();
+    content.about.bio_p1      = document.getElementById('about-bio-p1').value.trim();
+    content.about.bio_p2      = document.getElementById('about-bio-p2').value.trim();
+    content.about.credentials = document.getElementById('about-credentials').value
+      .split('\n').map(s => s.trim()).filter(Boolean);
+    content.story.quote       = document.getElementById('story-quote').value.trim();
+    content.story.sub         = document.getElementById('story-sub').value.trim();
+    return content;
+  }
+
+  // ── SAVE ──
+  document.getElementById('save-btn').addEventListener('click', saveChanges);
+
+  async function saveChanges() {
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    document.getElementById('save-status').textContent = '';
+
+    try {
+      const res = await fetch('/api/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: adminPassword, content: collectContent() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Save failed');
+      showToast('✓ Saved! Site updates in ~30 seconds.');
+      document.getElementById('save-status').textContent = 'Saved just now';
+    } catch (err) {
+      showToast(err.message, true);
+    }
+    btn.disabled = false;
+    btn.textContent = 'Save changes';
+  }
+
+  // ── TOAST ──
+  function showToast(msg, isError = false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = isError ? 'error' : '';
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3500);
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>
